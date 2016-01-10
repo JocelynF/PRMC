@@ -1,18 +1,18 @@
 import numpy as np
 from wl1989stoich import *
 from wl1989kdcalc import *
-    
+  
 def state(system_components, T, uaj, ta):
     tolerance = np.power(10,-5.)
     max_iter = 3000
     # Initiate a first guess of Fa
-    fa = {'plg':0., 'ol':0., 'cpx':0.}
-    qa = {'plg':0., 'ol':0., 'cpx':0.}
+    fa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
+    qa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
     dfa = {}
     # Variable a tells it whether or not to break the loop
     a = True
     # Liquid composition is initally the same as system since all fa's equal 0
-    liquid_components = {key:system_components[key] for key in system_components.keys()}
+    liquid_components = system_components.copy()
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
     kdaj = kdCalc(liquid_components, T)
@@ -82,9 +82,7 @@ def state(system_components, T, uaj, ta):
             
 def calculate_Rj(fa, kd, component):
     # Called by calculate_Pab and calculate_Qa
-    temp = 0.
-    for p in fa.keys():
-        temp += fa[p]*(kd[p][component]-1)
+    temp = fa.dot(kd.loc[component]-1.)
     rj = 1./(1.+temp)
     return rj
 
@@ -96,9 +94,9 @@ def calculate_liquidComp(fa, kd, component, system_components):
 def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
     # Called by State
     # Initialize rj, clj, and caj
-    caj = {'plg':{key:0 for key in system_components.keys()}, 
-    'cpx':{key:0 for key in system_components.keys()}, 
-    'ol':{key:0 for key in system_components.keys()}}
+    columns = ['ol', 'plg', 'cpx']
+    index = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'CaAl2O4', 'TiO2']
+    caj = pd.DataFrame(0,index = index, columns = columns)
     # Given composition in component form and the Temperature,
     # calculate the saturation of a given phase.
     qa = -ta[phase]

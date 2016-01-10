@@ -15,7 +15,7 @@ def kdCalc_original(components, T):
     kd.loc['CaAl2O4', 'plg'] = np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     kd.loc['NaAlO2', 'plg'] = np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
     kd.loc['MgO', 'cpx'] = np.power(10.,((3798./T) - 2.28))
-    kd.loc['FeO', 'cpx'] = 0.24*cpx['MgO']
+    kd.loc['FeO', 'cpx'] = 0.24*kd.loc['MgO', 'cpx']
     kd.loc['CaSiO3', 'cpx'] = np.power(10.,((1783./T)-0.753))
     kd.loc['CaAl2O4', 'cpx'] = np.power(10.,((2418./T)-2.3))
     kd.loc['NaAlO2', 'cpx'] = np.power(10.,((5087./T)-4.48))
@@ -35,7 +35,7 @@ def kdCalc(components, T):
     kd.loc['CaAl2O4', 'plg'] = 0.99*np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     kd.loc['NaAlO2', 'plg'] = 0.92*np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
     kd.loc['MgO', 'cpx'] = np.power(10.,((3798./T) - 2.28))
-    kd.loc['FeO', 'cpx'] = 0.24*cpx['MgO']
+    kd.loc['FeO', 'cpx'] = 0.24*kd.loc['MgO', 'cpx']
     kd.loc['CaSiO3', 'cpx'] = np.power(10.,((1783./T)-0.753))
     kd.loc['CaAl2O4', 'cpx'] = np.power(10.,((2418./T)-2.3))
     kd.loc['NaAlO2', 'cpx'] = np.power(10.,((5087./T)-4.48))
