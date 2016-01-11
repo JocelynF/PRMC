@@ -108,8 +108,8 @@ def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
         # Calculate the liquid composition - doesn't need to be saved
         # Calculate the composition of the phases
             clj = calculate_liquidComp(fa,kd, component, system_components)
-            caj[phase][component] = clj*kd[phase][component]
-            qa += uaj[phase][component]*caj[phase][component]
+            caj[phase][component] = clj*kd.loc[component, phase]
+            qa += uaj.loc[component][phase]*caj.loc[component,phase]
     return qa
 
 def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
