@@ -80,42 +80,50 @@ def state(system_components, T, uaj, ta):
             
 # The following functions are used in State
             
-def calculate_Rj(fa, kd, component):
+def calculate_Rj(fa, kd):
     # Called by calculate_Pab and calculate_Qa
-    temp = fa.dot(kd.loc[component]-1.)
-    rj = 1./(1.+temp)
+    rj = pd.Series(0., index = kd.index) 
+    #kd index does not include SiO2
+    fadot = fa.dot
+    for component in kd.index:
+        temp = fadot(kd.loc[component,:]-1.)
+        rj[component] = 1./(1.+temp)
     return rj
 
-def calculate_liquidComp(fa, kd, component, system_components):
-    rj = calculate_Rj(fa, kd, component)
-    clj = system_components[component]*rj
+def calculate_liquidComp(fa, kd, system_components):
+    rj = calculate_Rj(fa, kd)
+    clj = system_components.multiply(rj)
     return clj
+   
     
-def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
+def calculate_Qa(fa, kd, system_components, ta, uaj):
     # Called by State
-    # Initialize rj, clj, and caj
-    columns = ['ol', 'plg', 'cpx']
-    index = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'CaAl2O4', 'TiO2']
-    caj = pd.DataFrame(0,index = index, columns = columns)
+    # Initializecaj
+    caj = pd.DataFrame(0,index = kd.index, columns = kd.columns)
+    qa = pd.Series(0, index = kd.columns)
+    #kd index does not include SiO2
     # Given composition in component form and the Temperature,
     # calculate the saturation of a given phase.
-    qa = -ta[phase]
-    for component in system_components.keys():
-        if component == 'SiO2':
-            pass
-        else:
-        # Calculate the values for Rj
-        # Calculate the liquid composition - doesn't need to be saved
-        # Calculate the composition of the phases
-            clj = calculate_liquidComp(fa,kd, component, system_components)
-            caj[phase][component] = clj*kd.loc[component, phase]
-            qa += uaj.loc[component][phase]*caj.loc[component,phase]
+    # Calculate the values for Rj
+    # Calculate the liquid composition - doesn't need to be saved
+    # Calculate the composition of the phases
+    clj = calculate_liquidComp(fa,kd, system_components)
+    #The following line are just for speedin python. 
+    #It avoids the use of dots in a loop.
+    cljmultiply = clj.multiply
+    for phase in kd.columns: 
+        caj.loc[:,phase] = cljmultiply(kd.loc[:, phase]
+        qa[phase] = -ta[phase] + caj.loc[:,phase].dot(uaj.loc[:,phase])
     return qa
 
 def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
     # Called by create_pab_dict
-    rj = {}
     pab = 0.
+    
+    kd1 = kd.loc[:,phase1]
+    kd2 = kd.loc[:,phase2]-1
+    pab = uaj.loc[:,phase1].multip
+    
     for component in system_components.keys():
         if component == 'SiO2':
             pass
