@@ -122,7 +122,9 @@ def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
     
     kd1 = kd.loc[:,phase1]
     kd2 = kd.loc[:,phase2]-1
-    pab = uaj.loc[:,phase1].multip
+    rj = calculate_Rj(fa, kd)
+    rj2 = rj.multiply(rj)
+    pab = uaj.loc[:,phase1].multiply
     
     for component in system_components.keys():
         if component == 'SiO2':
