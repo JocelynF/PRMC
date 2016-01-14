@@ -10,7 +10,7 @@ def kdCalc_original(components, T):
     """
     columns = ['ol', 'plg', 'cpx']
     index = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'CaAl2O4', 'TiO2']
-    kd = pd.DataFrame(0,index = index, columns = columns)
+    kd = pd.DataFrame(index = index, columns = columns)
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     kd.loc['CaAl2O4', 'plg'] = np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     kd.loc['NaAlO2', 'plg'] = np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
@@ -30,7 +30,7 @@ def kdCalc(components, T):
     """
     columns = ['ol', 'plg', 'cpx']
     index = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'CaAl2O4', 'TiO2']
-    kd = pd.DataFrame(0,index = index, columns = columns)
+    kd = pd.DataFrame(index = index, columns = columns)
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     kd.loc['CaAl2O4', 'plg'] = 0.99*np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     kd.loc['NaAlO2', 'plg'] = 0.92*np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
