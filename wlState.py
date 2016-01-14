@@ -8,7 +8,7 @@ def state(system_components, T, uaj, ta):
     # Initiate a first guess of Fa
     fa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
     qa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
-    dfa = {}
+    dfa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
     # Variable a tells it whether or not to break the loop
     a = True
     # Liquid composition is initally the same as system since all fa's equal 0
@@ -16,7 +16,7 @@ def state(system_components, T, uaj, ta):
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
     kdaj = kdCalc(liquid_components, T)
-    for p in fa.keys():
+    for p in fa.index:
         #Calculate the initial saturation for each phase
         qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
         if (qa[p]>0) or (fa[p]>0):
@@ -34,30 +34,26 @@ def state(system_components, T, uaj, ta):
         if len(phase_list) !=0:
 #            fa_new = newton(qa, fa, kdaj, liquid_components, uaj)
             # THE FOLLOWING CODE USES THE MATRIX METHOD
-            pab_dict = create_Pab_dict(fa, kdaj, system_components, uaj, phase_list)
-            dfa = solve_matrix(pab_dict, qa, phase_list)
+            pab = create_pab_matrix(fa, kdaj, system_components, uaj, phase_list)
+            dfa = solve_matrix(pab, qa, phase_list)
             if dfa == 'Singular':
                 print('Singular')
-            fa_new = {}
+            fa_new = fa + dfa
             tst = 0.
-            for phase in phase_list:
-                # Check to make sure the new Fa is greater than 0 and less than 1
-                fa_new[phase] = fa[phase] + dfa[phase]
-                if fa_new[phase]<0:
-                    fa_new[phase] = 0.1*fa[phase]
-                elif fa_new[phase]>1:
-                    fa_new[phase]= 0.9 + .1*fa[phase]
-                tst += abs(fa[phase] - fa_new[phase])
-                fa[phase] = fa_new[phase]
+		if ((fa_new > 0)&(fa_new < 1)).all() == False:
+			for phase in phase_list:
+			    # Check to make sure the new Fa is greater than 0 and less than 1
+			    if fa_new[phase]<0:
+				  fa_new[phase] = 0.1*fa[phase]
+			    elif fa_new[phase]>1:
+				  fa_new[phase]= 0.9 + .1*fa[phase]
+		tst = np.sum(abs(fa-fa_new))
+		fa = fa_new.copy()
             # Recalculate Liquid Percent
             x = tst/len(phase_list)
             if x <= tolerance:
                 a = False
-            for component in liquid_components.keys():
-                if component == 'SiO2':
-                    pass
-                else:                
-                    liquid_components[component] = calculate_liquidComp(fa, kdaj, component, system_components)
+            liquid_components = calculate_liquidComp(fa, kdaj, component, system_components)
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T)
@@ -118,51 +114,39 @@ def calculate_Qa(fa, kd, system_components, ta, uaj):
 
 def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
     # Called by create_pab_dict
-    pab = 0.
-    
-    kd1 = kd.loc[:,phase1]
-    kd2 = kd.loc[:,phase2]-1
-    rj = calculate_Rj(fa, kd)
-    rj2 = rj.multiply(rj)
-    pab = uaj.loc[:,phase1].multiply
-    
     for component in system_components.keys():
-        if component == 'SiO2':
-            pass
-        else:
-            rj = calculate_Rj(fa,kd,component)
-            pab += uaj[phase1][component]*system_components[component]*kd[phase1][component]*(kd[phase2][component]-1)*rj*rj
+        rj = calculate_Rj(fa,kd)
+	  clj = calculate_liquidComp(fa, kd, system_components)
+	  cljrj = clj.multiply(rj)
+	  caj = clj.multiply(kd.loc[:, phase1])
+	  cljrjcaj = cljrj.multiply(caj)
+	  cljrjcajuaj = cljrjcaj.multiply(uaj.loc[:, phase1]
+        pab = np.sum(cljrjcajuaj.multiply(kd.loc[:,phase2]-1))
     return pab
 
-def create_Pab_dict(fa, kd, system_components, uaj, phase_list):
+def create_Pab_matrix(fa, kd, system_components, uaj, phase_list):
     # Called by State
-    pab = {'plg':{}, 'cpx':{}, 'ol':{}}
+    pab = pd.DataFrame(columns = kd.columns, index = kd.columns)
     for phase1 in phase_list:
         for phase2 in phase_list:
-            pab[phase1][phase2] = calculate_Pab(fa, kd, phase1, phase2, system_components,uaj)
+            pab.loc[phase1, phase2] = calculate_Pab(fa, kd, phase1, phase2, system_components,uaj)
     return pab
     
 def solve_matrix(pab, qa, phase_list):
     # NEED TO ADD PART IN CASE OF SINGULAR MATRIX
     # Called by State
     # Convert dictionaries to arrays then use numpy to solve
-    pab_array = np.zeros([len(phase_list),len(phase_list)])
-    qa_array = np.zeros([len(phase_list),1])
-    dfa = {}
-    for i in xrange(0,len(phase_list)):
-        qa_array[i] = qa[phase_list[i]]
-        for j in xrange(0,len(phase_list)):
-            pab_array[i,j] = pab[phase_list[i]][phase_list[j]]
+    pab_array = pab.as_matrix()
+    qa_array = qa.as_matrix()
     det = np.linalg.det(pab_array)
     if det == 0:
          dfa = 'Singular'
     # Solve Matrix
     else:
-        pab_array = pab_array
         dfa_array = np.dot(np.linalg.inv(pab_array),(qa_array))
         # Convert back to Dicitonaries
-        for k in xrange(0,len(phase_list)):
-            dfa[phase_list[k]] = dfa_array[k][0]
+        for k in xrange(len(pab.index)):
+            dfa[pab_index[k]] = dfa_array[k][0]
     return dfa       
     
 def newton(qa, fa, kd, system_components, uaj):
