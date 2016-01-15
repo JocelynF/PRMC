@@ -2,10 +2,11 @@ import numpy as np
 import pandas as pd
 from wl1989stoich import *
 from wl1989kdcalc import *
+from scipy import linalg
   
 def state(system_components, T, uaj, ta):
     tolerance = np.power(10,-5.)
-    max_iter = 3000
+    max_iter = 300
     # Initiate a first guess of Fa
     fa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
     qa = pd.Series(index = ['ol', 'plg', 'cpx'])
@@ -26,19 +27,19 @@ def state(system_components, T, uaj, ta):
             # DOUBLE CHECK IF I SHOULD USE STOICH
             phase_list.append(phase)
     # If there is no phase that is saturated, no need to enter the loop
-    if len(phase_list) > 0:
+    if len(phase_list) == 0:
         a = False
     i = 0
     while (a == True) and (i<max_iter):
         i += 1
-        # Use Newton Method to find new Fa if there are phases present  
+        # Use Newton Method to find new Fa if there are phases present
         if len(phase_list) > 0:
 #            fa_new = newton(qa, fa, kdaj, liquid_components, uaj)
             # THE FOLLOWING CODE USES THE MATRIX METHOD
-            pab = create_pab_matrix(fa, kdaj, system_components, uaj, phase_list)
+            pab = create_Pab_matrix(fa, kdaj, system_components, uaj, phase_list)
             dfa = solve_matrix(pab, qa, phase_list)
-            if dfa == 'Singular':
-                print('Singular')
+            if isinstance(dfa, basestring):
+                print 'Singular'
             fa_new = fa + dfa
             if ((fa_new > 0)&(fa_new < 1)).all() == False:
                 for phase in phase_list:
@@ -53,21 +54,24 @@ def state(system_components, T, uaj, ta):
             x = tst/len(phase_list)
             if x <= tolerance:
                 a = False
-            liquid_components = calculate_liquidComp(fa, kdaj, component, system_components)
+            liquid_components = calculate_liquidComp(fa, kdaj, system_components)
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T)
             qa = calculate_Qa(fa, kdaj, system_components, ta, uaj)
             for phase in fa.index:
                 if (qa[phase]>0) or (fa[phase]>0):
-                # Add phase to list if it is oversaturated or it is underated
+                # Add phase to list if it is oversaturated or it is undesaturated
                     phase_list.append(phase)
-            if sum(fa.values())>=1:
+            if np.sum(fa.values)>=1:
                 a = True
-            elif sum(fa.values())<0:
+            elif np.sum(fa.values)<0:
                 a = True
         else:
             a = False
+    print type(qa)
+    print type(fa)
+    print type(liquid_components)
     return qa, fa, liquid_components, i
             
             
@@ -75,7 +79,7 @@ def state(system_components, T, uaj, ta):
             
 def calculate_Rj(fa, kd):
     # Called by calculate_Pab and calculate_Qa
-    rj = pd.Series(0., index = kd.index) 
+    rj = pd.Series(index = kd.index) 
     #kd index does not include SiO2
     fadot = fa.dot
     for component in kd.index:
@@ -104,7 +108,7 @@ def calculate_Qa(fa, kd, system_components, ta, uaj):
     #The following line are just for speedin python. 
     #It avoids the use of dots in a loop.
     cljmultiply = clj.multiply
-    for phase in fa.index: 
+    for phase in fa.index:
         caj.loc[:,phase] = cljmultiply(kd.loc[:, phase])
         qa[phase] = -ta[phase] + caj.loc[:,phase].dot(uaj.loc[:,phase])
     return qa
@@ -133,9 +137,10 @@ def solve_matrix(pab, qa, phase_list):
     # NEED TO ADD PART IN CASE OF SINGULAR MATRIX
     # Called by State
     # Convert dictionaries to arrays then use numpy to solve
-    pab_array = pab.as_matrix()
-    qa_array = qa.as_matrix()
-    det = np.linalg.det(pab_array)
+    dfa = pd.Series(index = pab.index)
+    pab_array = np.array(pab.values, dtype = 'float64')
+    qa_array = np.array(qa.values, dtype = 'float64')
+    det = linalg.det(pab_array)
     if det == 0:
          dfa = 'Singular'
     # Solve Matrix
@@ -143,7 +148,7 @@ def solve_matrix(pab, qa, phase_list):
         dfa_array = np.dot(np.linalg.inv(pab_array),(qa_array))
         # Convert back to Dicitonaries
         for k in xrange(len(pab.index)):
-            dfa[pab_index[k]] = dfa_array[k][0]
+            dfa[pab.index[k]] = dfa_array[k]
     return dfa       
     
      
