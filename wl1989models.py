@@ -77,6 +77,7 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
     bulk_d = pd.Series(0.,index = trace_start_comp.index)
     trange = np.arange(t_stop,t_start, tstep)
     trange[::-1].sort()
+    results = pd.DataFrame(columns = columns, index = trange)
     system_components = cationMolFracComponent(major_start_comp)
     major_liquid_components = system_components.copy()
     trace_liquid_comp = trace_start_comp.copy()
@@ -105,48 +106,61 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 
 #Equilibrium Crystallization - System Components never Change 
 def eq_model_fstop(f_stop, major_start_comp, trace_start_comp):
+    columns = ['T', 'fl', 'cpx', 'ol', 'plg']
+    columns.append(major_start_comp.columns)
+    columns.append(trace_start_comp.columns)
     tstep = 1.
-    bulk_d = {key:0 for key in trace_start_comp.keys()}
+    bulk_d = pd.Series(0.,index = trace_start_comp.index)
+    results = pd.DataFrame(columns = columns)
+    i = 0
     system_components = cationMolFracComponent(major_start_comp)
     t = get_first_T(system_components)
-    major_oxide_dict = {key:[] for key in major_start_comp.keys()}
-    trace_dict = {key:[] for key in trace_start_comp.keys()}
-    fl = []
     qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta)
+    major_liquid_components['SiO2'] = 1.-np.sum(major_liquid_components.values)
     major_oxides = cationFracToWeight(major_liquid_components)
-    for key in major_oxides.keys():
-        major_oxide_dict[key].append(major_oxides[key])
+    results.loc[i, 'T'] = t
+    results.loc[i, 'cpx'] = fa['cpx']
+    results.loc[i, 'ol'] = fa['ol']
+    results.loc[i, 'plg'] = fa['plg']
+    for element in major_oxides.index:
+        results.loc[i,element] = major_oxides[element]
     liq = 1.-sum(fa.values())
-    fl.append(liq)
+    results[i, 'fl'] = liq
     #Trace Elements
-    for elem in trace_start_comp.keys():
+    for elem in trace_start_comp.index:
         #Calculate Bulk D
-        bulk_d[elem] = 0
-        fa_tot = sum(fa.values())
+        fa_tot = np.sum(fa.values)
         if fa_tot != 0:
-            for key in fa.keys():
-                bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
+            for phase in fa.index:
+                bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
         #Add erupted composition to eruption dictionary
-        trace_dict[elem].append(trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem]))
-    while fl[-1]>f_stop:
+	  trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
+	  results.loc[i,elem] = trace_elem
+    while liq > f_stop:
+        i += 1
         t = t - tstep
         qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta)
+	  major_liquid_components['SiO2'] = 1. - np.sum(major_liquid_components.values)
+	  results.loc[i, 'T'] = t
+        results.loc[i, 'cpx'] = fa['cpx']
+        results.loc[i, 'ol'] = fa['ol']
+        results.loc[i, 'plg'] = fa['plg']
         major_oxides = cationFracToWeight(major_liquid_components)
-        for key in major_oxides.keys():
-            major_oxide_dict[key].append(major_oxides[key])
-        liq = 1.-sum(fa.values())
-        fl.append(liq)
+        for element in major_oxides.index:
+            results.loc[i,element] = major_oxides[element]
+        liq = 1.-np.sum(fa.values)
+        results.loc[i, 'fl'] = liq
         #Trace Elements
         for elem in trace_start_comp.keys():
             #Calculate Bulk D
-            bulk_d[elem] = 0
-            fa_tot = sum(fa.values())
+            fa_tot = np.sum(fa.values)
             if fa_tot != 0:
-                for key in fa.keys():
-                    bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
+                for phase in fa.index:
+                    bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
             #Add erupted composition to eruption dictionary
-            trace_dict[elem].append(trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem]))
-    return fl, major_oxide_dict, trace_dict
+	  trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
+	  results.loc[i,elem] = trace_elem
+	  return fl, major_oxide_dict, trace_dict
 
 
 #Fractional Crystallization - System Components change after each iteration
@@ -157,9 +171,6 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp):
     t = get_first_T(system_components)
     major_liquid_components = system_components.copy()
     trace_liquid_comp = trace_start_comp.copy()
-    major_oxide_dict = {key:[] for key in major_start_comp.keys()}
-    trace_dict = {key:[] for key in trace_start_comp.keys()}
-    fl = []
     qa, fa, major_liquid_components, num_iter = state(major_liquid_components,t,uaj, ta)
     major_oxides = cationFracToWeight(major_liquid_components)
     for key in major_oxides.keys():
