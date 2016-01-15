@@ -6,7 +6,7 @@ mass = {'Si':28.0855, 'Ti':47.867, 'Al':26.9815, 'Fe':55.845, 'Mg':24.305,
 
 def cationMolFracElement(oxides):
     #Oxides is one row of a dataframe --- Should probably convert to series
-    elem = ['SiO2', 'TiO2', 'AlO15', 'CaO', 'NaO5', 'MgO', 'FeO', 'KO5', 'PO52', 'MnO']
+    elem = ['SiO2', 'TiO2', 'AlO15', 'CaO', 'NaO5', 'MgO', 'FeO']#, 'KO5', 'PO52', 'MnO']
     mol = pd.Series(index = elem)
     oxide_norm = pd.Series(index = oxides.columns)
     cationMolFrac = pd.Series(index = elem)
@@ -21,9 +21,9 @@ def cationMolFracElement(oxides):
     mol['NaO5'] = (oxide_norm['Na2O']*2.)/(2.*mass['Na']+mass['O']) 
     mol['MgO'] = oxide_norm['MgO']/(mass['Mg']+mass['O']) 
     mol['FeO'] = oxide_norm['FeO']/(mass['Fe']+mass['O'])
-    mol['KO5'] = (oxide_norm['K2O']*2.)/(2.*mass['K'] + mass['O'])
-    mol['PO52']= (oxide_norm['P2O5']*2.)/(2.*mass['P'] + 5.*mass['O'])
-    mol['MnO']= oxide_norm['MnO']/(mass['Mn'] + mass['O'])
+#    mol['KO5'] = (oxide_norm['K2O']*2.)/(2.*mass['K'] + mass['O'])
+#    mol['PO52']= (oxide_norm['P2O5']*2.)/(2.*mass['P'] + 5.*mass['O'])
+#    mol['MnO']= oxide_norm['MnO']/(mass['Mn'] + mass['O'])
     #Calculate mole fraction of each element
     for element in mol.index:
         cationMolFrac[element] = mol[element]/sum(mol.values)
@@ -58,7 +58,7 @@ def cationFracToWeight(components):
     oxide['MgO'] = components['MgO']*(mass['Mg']+mass['O'])
     oxide['CaO'] = ((components['CaAl2O4']/3.) + (components['CaSiO3']/2.))*(mass['Ca']+mass['O'])
     oxide['SiO2'] = (components['SiO2']+(components['CaSiO3']/2.))*(mass['Si']+(2*mass['O']))
-    tot = np.sum(oxide.values())/99.6
+    tot = np.sum(oxide.values())/100.
     for element in oxide.keys():
             oxide_dict[element] = oxide[element]/tot
     return oxide_dict
