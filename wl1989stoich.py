@@ -8,11 +8,11 @@ def cationMolFracElement(oxides):
     #Oxides is one row of a dataframe --- Should probably convert to series
     elem = ['SiO2', 'TiO2', 'AlO15', 'CaO', 'NaO5', 'MgO', 'FeO']#, 'KO5', 'PO52', 'MnO']
     mol = pd.Series(index = elem)
-    oxide_norm = pd.Series(index = oxides.columns)
+    oxide_norm = pd.Series(index = oxides.index)
     cationMolFrac = pd.Series(index = elem)
     #Normalize oxides to 100wt%
-    for element in oxides.columns:
-        oxide_norm[element] = (oxides[element].iloc[0])/np.sum(oxides.values[0])
+    for element in oxides.index:
+        oxide_norm[element] = (oxides[element])/np.sum(oxides.values)
         #Get moles of each oxides
     mol['SiO2'] = oxide_norm['SiO2']/(mass['Si']+2*mass['O']) 
     mol['TiO2'] = oxide_norm['TiO2']/(mass['Ti']+2*mass['O']) 
@@ -25,8 +25,9 @@ def cationMolFracElement(oxides):
 #    mol['PO52']= (oxide_norm['P2O5']*2.)/(2.*mass['P'] + 5.*mass['O'])
 #    mol['MnO']= oxide_norm['MnO']/(mass['Mn'] + mass['O'])
     #Calculate mole fraction of each element
+    tot = np.sum(mol.values)
     for element in mol.index:
-        cationMolFrac[element] = mol[element]/sum(mol.values)
+        cationMolFrac[element] = mol[element]/tot
     return cationMolFrac
       
 def cationMolFracComponent(oxides):
@@ -46,11 +47,11 @@ def cationMolFracComponent(oxides):
     #compCationMolFrac['HO5'] = cationMolFrac['HO5']
     return compCationMolFrac
  
- 
-#FIX THIS!!! 
+
 def cationFracToWeight(components):
-    oxide = {}
-    oxide_dict = {}
+    index = ['SiO2', 'TiO2', 'Al2O3', 'FeO', 'MgO', 'CaO', 'Na2O']
+    oxide = pd.Series(index = index)
+    oxide_final = pd.Series(index = index)
     oxide['Na2O'] = (components['NaAlO2']/2.)*(((2.*mass['Na'])+mass['O'])/2.)
     oxide['TiO2'] = components['TiO2']*(mass['Ti'] + (2*mass['O']))
     oxide['Al2O3'] = ((components['CaAl2O4']*(2./3.)) +(components['NaAlO2']/2.))*(((2.*mass['Al'])+(3.*mass['O']))/2.)
@@ -58,8 +59,8 @@ def cationFracToWeight(components):
     oxide['MgO'] = components['MgO']*(mass['Mg']+mass['O'])
     oxide['CaO'] = ((components['CaAl2O4']/3.) + (components['CaSiO3']/2.))*(mass['Ca']+mass['O'])
     oxide['SiO2'] = (components['SiO2']+(components['CaSiO3']/2.))*(mass['Si']+(2*mass['O']))
-    tot = np.sum(oxide.values())/100.
-    for element in oxide.keys():
-            oxide_dict[element] = oxide[element]/tot
-    return oxide_dict
+    tot = np.sum(oxide.values)/100.
+    for element in oxide.index:
+            oxide_final[element] = oxide[element]/tot
+    return oxide_final
 

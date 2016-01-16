@@ -51,12 +51,12 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
         major_liquid_components['SiO2'] = 1. - np.sum(major_liquid_components.values)
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-np.sum(fa.values)
-        results.loc[trange[i], 'fl'] = liq
-        results.loc[trange[i], 'cpx'] = fa['cpx']
-        results.loc[trange[i], 'ol'] = fa['ol']
-        results.loc[trange[i], 'plg'] = fa['plg']
+        results.at[trange[i], 'fl'] = liq
+        results.at[trange[i], 'cpx'] = fa['cpx']
+        results.at[trange[i], 'ol'] = fa['ol']
+        results.at[trange[i], 'plg'] = fa['plg']
         for element in major_oxides.index:
-            results.loc[trange[i], element]
+            results.at[trange[i], element]
         #Trace Elements
         for elem in trace_start_comp.index:
             #Calculate Bulk D
@@ -66,7 +66,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
             #Add erupted composition to eruption dictionary
             trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])  
-            results.loc[trange[i], elem] = trace_elem            
+            results.at[trange[i], elem] = trace_elem            
     return results
 
 
@@ -88,11 +88,11 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #        major_oxides = cationFracToWeight(major_liquid_components)
 #        liq = (1. - sum(fa.values()))
 #        if i == 0:
-#            results.loc[trange[i], 'fl'] = liq
+#            results.at[trange[i], 'fl'] = liq
 #        else:
-#            results.loc[trange[i], 'fl'] = liq*results.loc[trange[i-1], 'fl']        
+#            results.at[trange[i], 'fl'] = liq*results.at[trange[i-1], 'fl']        
 #        for element in major_oxides.index:
-#            results.loc[trange[i], major_oxides[element]]
+#            results.at[trange[i], major_oxides[element]]
 #        #Trace Elements
 #        for elem in trace_start_comp.index:
 #            #Calculate Bulk D
@@ -102,7 +102,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #                    bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
 #            #Add erupted composition to eruption dictionary
 #            trace_liquid_comp[elem] = trace_liquid_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
-#            results.loc[trange[i], elem] = trace_liquid_comp[elem] 
+#            results.at[trange[i], elem] = trace_liquid_comp[elem] 
 #    return results
 #
 ##Equilibrium Crystallization - System Components never Change 
@@ -119,14 +119,14 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #    qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta)
 #    major_liquid_components['SiO2'] = 1.-np.sum(major_liquid_components.values)
 #    major_oxides = cationFracToWeight(major_liquid_components)
-#    results.loc[i, 'T'] = t
-#    results.loc[i, 'cpx'] = fa['cpx']
-#    results.loc[i, 'ol'] = fa['ol']
-#    results.loc[i, 'plg'] = fa['plg']
+#    results.at[i, 'T'] = t
+#    results.at[i, 'cpx'] = fa['cpx']
+#    results.at[i, 'ol'] = fa['ol']
+#    results.at[i, 'plg'] = fa['plg']
 #    for element in major_oxides.index:
-#        results.loc[i,element] = major_oxides[element]
+#        results.at[i,element] = major_oxides[element]
 #    liq = 1.-np.sum(fa.values)
-#    results.loc[i, 'fl'] = liq
+#    results.at[i, 'fl'] = liq
 #    #Trace Elements
 #    for elem in trace_start_comp.index:
 #        #Calculate Bulk D
@@ -136,21 +136,21 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #                bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
 #        #Add erupted composition to eruption dictionary
 #        trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
-#        results.loc[i,elem] = trace_elem
+#        results.at[i,elem] = trace_elem
 #    while liq > f_stop:
 #        i += 1
 #        t = t - tstep
 #        qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta)
 #        major_liquid_components['SiO2'] = 1. - np.sum(major_liquid_components.values)
-#        results.loc[i, 'T'] = t
-#        results.loc[i, 'cpx'] = fa['cpx']
-#        results.loc[i, 'ol'] = fa['ol']
-#        results.loc[i, 'plg'] = fa['plg']
+#        results.at[i, 'T'] = t
+#        results.at[i, 'cpx'] = fa['cpx']
+#        results.at[i, 'ol'] = fa['ol']
+#        results.at[i, 'plg'] = fa['plg']
 #        major_oxides = cationFracToWeight(major_liquid_components)
 #        for element in major_oxides.index:
-#            results.loc[i,element] = major_oxides[element]
+#            results.at[i,element] = major_oxides[element]
 #        liq = 1.-np.sum(fa.values)
-#        results.loc[i, 'fl'] = liq
+#        results.at[i, 'fl'] = liq
 #        #Trace Elements
 #        for elem in trace_start_comp.keys():
 #            #Calculate Bulk D
@@ -160,7 +160,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #                    bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
 #            #Add erupted composition to eruption dictionary
 #        trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
-#        results.loc[i,elem] = trace_elem
+#        results.at[i,elem] = trace_elem
 #        return fl, major_oxide_dict, trace_dict
 #
 #
@@ -180,14 +180,14 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #    qa, fa, major_liquid_components, num_iter = state(major_liquid_components,t,uaj, ta)
 #    major_liquid_components['SiO2']= 1.-np.sum(major_liquid_components.values)
 #    major_oxides = cationFracToWeight(major_liquid_components)
-#    results.loc[i, 'T'] = t
-#    results.loc[i, 'cpx'] = fa['cpx']
-#    results.loc[i, 'ol'] = fa['ol']
-#    results.loc[i, 'plg'] = fa['plg']
+#    results.at[i, 'T'] = t
+#    results.at[i, 'cpx'] = fa['cpx']
+#    results.at[i, 'ol'] = fa['ol']
+#    results.at[i, 'plg'] = fa['plg']
 #    for element in major_oxides.index:
-#        results.loc[i,element] = major_oxides[element]
+#        results.at[i,element] = major_oxides[element]
 #    liq = 1.-np.sum(fa.values)
-#    results.loc[i, 'fl'] = liq
+#    results.at[i, 'fl'] = liq
 #    #Trace Elements    
 #    for elem in trace_start_comp.index:
 #        #Calculate Bulk D
@@ -197,18 +197,18 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #                bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
 #        #Add erupted composition to eruption dictionary
 #	  trace_elem = trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
-#	  results.loc[i,elem] = trace_elem
-#    while results.loc[i,'fl'] > f_stop:
+#	  results.at[i,elem] = trace_elem
+#    while results.at[i,'fl'] > f_stop:
 #        i += 1
 #        t = t-tstep
 #        qa, fa, major_liquid_components, num_iter = state(major_liquid_components,t,uaj, ta)
 #        major_liquid_components['SiO2'] = 1. - np.sum(major_liquid_components.value)
 #        major_oxides = cationFracToWeight(major_liquid_components)
 #        for element in major_oxides.index:
-#            results.loc[i,element] = major_oxides[element]
+#            results.at[i,element] = major_oxides[element]
 #        liq = (1. - np.sum(fa.values))
-#        liq = liq*results.loc[i-1, 'fl']
-#        results.loc[i, 'fl'] = liq
+#        liq = liq*results.at[i-1, 'fl']
+#        results.at[i, 'fl'] = liq
 #        #Trace Elements
 #        for elem in trace_start_comp.index:
 #            #Calculate Bulk D
@@ -218,7 +218,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #                    bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
 #            #Add erupted composition to eruption dictionary
 #            trace_liquid_comp[elem] = trace_liquid_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
-#            results.loc[i,elem] = trace_liquid_comp[elem]
+#            results.at[i,elem] = trace_liquid_comp[elem]
 #    return results
 #
 #    
@@ -237,11 +237,11 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp):
 #    eq_results = eq_model_fstop(small_f, major_sz_comp, trace_sz_comp)
 #    #Final Oxide composition is the solidification zone liquid composition
 #    for element in major_start_comp.columns:
-#        major_sz_comp[element] = eq_results.loc[-1,element]
+#        major_sz_comp[element] = eq_results.at[-1,element]
 #    for elem in trace_start_comp.columns:
 #        trace_sz_comp[key] = eq_results[-1,elem]
 #    #Calculate percent liquid in solidification zone
-#    liq = eq_results.loc[-1, 'fl']*sz
+#    liq = eq_results.at[-1, 'fl']*sz
 #    #Add Ml/Mo to list
 #    big_f.append(1.-sz+liq)
 #    #Mix solidification zone liquid with starting composition

@@ -38,8 +38,9 @@ def state(system_components, T, uaj, ta):
             # THE FOLLOWING CODE USES THE MATRIX METHOD
             pab = create_Pab_matrix(fa, kdaj, system_components, uaj, phase_list)
             dfa = solve_matrix(pab, qa, phase_list)
-            if isinstance(dfa, basestring):
-                print 'Singular'
+            # if isinstance(dfa, str):
+                # print 'Singular'
+                # break
             fa_new = fa + dfa
             if ((fa_new > 0)&(fa_new < 1)).all() == False:
                 for phase in phase_list:
@@ -69,9 +70,6 @@ def state(system_components, T, uaj, ta):
                 a = True
         else:
             a = False
-    print type(qa)
-    print type(fa)
-    print type(liquid_components)
     return qa, fa, liquid_components, i
             
             
@@ -127,22 +125,24 @@ def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
 
 def create_Pab_matrix(fa, kd, system_components, uaj, phase_list):
     # Called by State
-    pab = pd.DataFrame(columns = fa.index, index = fa.index)
+    pab = pd.DataFrame(0.,columns = phase_list, index = phase_list)
     for phase1 in phase_list:
         for phase2 in phase_list:
-            pab.loc[phase1, phase2] = calculate_Pab(fa, kd, phase1, phase2, system_components,uaj)
+            pab.at[phase1, phase2] = calculate_Pab(fa, kd, phase1, phase2, system_components,uaj)
     return pab
     
 def solve_matrix(pab, qa, phase_list):
     # NEED TO ADD PART IN CASE OF SINGULAR MATRIX
     # Called by State
     # Convert dictionaries to arrays then use numpy to solve
-    dfa = pd.Series(index = pab.index)
+    dfa = pd.Series(0.,index = qa.index)
     pab_array = np.array(pab.values, dtype = 'float64')
+    qa = qa[phase_list]
     qa_array = np.array(qa.values, dtype = 'float64')
     det = linalg.det(pab_array)
     if det == 0:
-         dfa = 'Singular'
+        dfa = 'Singular'
+        print 'Singular Matrix'
     # Solve Matrix
     else:
         dfa_array = np.dot(np.linalg.inv(pab_array),(qa_array))
