@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from wl1989stoich import *
 from wl1989kdcalc import *
+<<<<<<< Updated upstream
 from scipy import linalg
   
 def state(system_components, T, uaj, ta):
@@ -11,12 +12,29 @@ def state(system_components, T, uaj, ta):
     fa = pd.Series(0., index = ['ol', 'plg', 'cpx'])
     qa = pd.Series(index = ['ol', 'plg', 'cpx'])
     dfa = pd.Series(index = ['ol', 'plg', 'cpx'])
+=======
+
+fa_guess =  {'plg':0., 'ol':0., 'cpx':0.}
+    
+def state(oxides, T, P, uaj, ta , fa = fa_guess):
+    """
+    State uses an the major starting composition, temperature, uaj, ta, and an
+    initial guess of the fraction of each phase to determine the fraction of liquid, 
+    fraction of phases, and liquid composition at a given temperature and pressure.
+    """
+    tolerance = np.power(10,-5.)
+    max_iter = 3000
+    qa = {'plg':0., 'ol':0., 'cpx':0.}
+    dfa = {}
+>>>>>>> Stashed changes
     # Variable a tells it whether or not to break the loop
     a = True
+    system_components = cationMolFracComponent(oxides)
     # Liquid composition is initally the same as system since all fa's equal 0
     liquid_components = system_components.copy()
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
+<<<<<<< Updated upstream
     kdaj = kdCalc(liquid_components, T)
     #Calculate the initial saturation for each phase
     qa = calculate_Qa(fa, kdaj, system_components, ta, uaj)
@@ -26,6 +44,16 @@ def state(system_components, T, uaj, ta):
             # and fa is greater than 0
             # DOUBLE CHECK IF I SHOULD USE STOICH
             phase_list.append(phase)
+=======
+    kdaj = kdCalc(oxides,liquid_components, T, P)
+    for p in fa.keys():
+        #Calculate the initial saturation for each phase
+        qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
+        if (qa[p]>0) or (fa[p]>0):
+            # Add phase to list if it is oversaturated or it is undersaturated
+            # and fa is greater than 0
+            phase_list.append(p)
+>>>>>>> Stashed changes
     # If there is no phase that is saturated, no need to enter the loop
     if len(phase_list) == 0:
         a = False
@@ -59,12 +87,24 @@ def state(system_components, T, uaj, ta):
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T)
+<<<<<<< Updated upstream
             qa = calculate_Qa(fa, kdaj, system_components, ta, uaj)
             for phase in fa.index:
                 if (qa[phase]>0) or (fa[phase]>0):
                 # Add phase to list if it is oversaturated or it is undesaturated
                     phase_list.append(phase)
             if np.sum(fa.values)>=1:
+=======
+            for p in fa.keys():
+                qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
+                if (qa[p]>0) or (fa[p]>0):
+                    phase_list.append(p)
+
+            #qa_new = [qa[x] for x in phase_list]
+            #if all(np.abs(value) <= tolerance for value in qa_new):
+                #a = False
+            if sum(fa.values())>=1:
+>>>>>>> Stashed changes
                 a = True
             elif np.sum(fa.values)<0:
                 a = True
