@@ -11,11 +11,10 @@ kd_dict = {'cpx':{'La':0.07,   'Sr':0.1,    'Ba':0.0005,   'Sc':2,    'Th':0.001
 
 
 ta = pd.Series([1.,1., 2./3.],index = ['ol', 'plg', 'cpx'])
-uaj_plg = {'CaAl2O4':5./3., 'NaAlO2':2.5, 'MgO':0, 'FeO':0, 'CaSiO3':0, 'TiO2':0}#, 'HO5':0,'KAlO2':0}
-uaj_ol = {'CaAl2O4':0, 'NaAlO2':0, 'MgO':1, 'FeO':1, 'CaSiO3':0, 'TiO2':0}#, 'HO5':0,'KAlO2':0}
-uaj_cpx = {'CaAl2O4':4./3., 'NaAlO2':2., 'MgO':2., 'FeO':2., 'CaSiO3':1., 'TiO2':1.}#, 'HO5':0,'KAlO2':0}
+uaj_plg = {'CaAl2O4':5./3., 'NaAlO2':2.5, 'MgO':0, 'FeO':0, 'CaSiO3':0, 'TiO2':0}
+uaj_ol = {'CaAl2O4':0, 'NaAlO2':0, 'MgO':1, 'FeO':1, 'CaSiO3':0, 'TiO2':0}
+uaj_cpx = {'CaAl2O4':4./3., 'NaAlO2':2., 'MgO':2., 'FeO':2., 'CaSiO3':1., 'TiO2':1.}
 uaj = {'ol':uaj_ol, 'plg':uaj_plg, 'cpx':uaj_cpx}
-uaj = pd.DataFrame(uaj)
 
 
 def get_first_T(system_components):

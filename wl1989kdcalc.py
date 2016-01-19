@@ -2,14 +2,15 @@ from wl1989stoich import *
 import numpy as np
 import pandas as pd
 
-def kdCalc_original(components, T):
+def kdCalc_original(components, T, P = None):
     """
     This is the original Weaver and Langmuir
     calculation of Kd's. T in Kelvin.
     """
-    cpx = {key:0 for key in components.keys()}
-    plg = {key:0 for key in components.keys()}
-    ol = {key:0 for key in components.keys()}
+    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    cpx = {key:0 for key in keys}
+    plg = {key:0 for key in keys}
+    ol = {key:0 for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     plg['CaAl2O4'] = np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     plg['NaAlO2'] = np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
@@ -24,13 +25,14 @@ def kdCalc_original(components, T):
     kd = {'cpx':cpx, 'ol':ol, 'plg':plg}
     return kd
 
-def kdCalc_reynolds(components, T):
+def kdCalc_reynolds(components, T, P = None):
     """
     This uses Reynold's Thesis Calculations.
     """
-    columns = ['ol', 'plg', 'cpx']
-    index = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
-    kd = pd.DataFrame(0.,index = index, columns = columns)
+    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    cpx = {key:0 for key in keys}
+    plg = {key:0 for key in keys}
+    ol = {key:0 for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     plg['CaAl2O4'] = 0.99*np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     plg['NaAlO2'] = 0.92*np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
@@ -50,9 +52,10 @@ def kdCalc_langmuir1992(components, T, P):
     This uses Langmuir Et Al. 1992 Calculations.
     P in bars, T in Kelvin.
     """
-    cpx = {key:0 for key in components.keys()}
-    plg = {key:0 for key in components.keys()}
-    ol = {key:0 for key in components.keys()}
+    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    cpx = {key:0 for key in keys}
+    plg = {key:0 for key in keys}
+    ol = {key:0 for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     plg['CaAl2O4'] = np.power(10.,(2446./T) - 1.122 + (0.2562*anorthite))
     plg['NaAlO2'] = np.power(10.,((3195. + (3283*anorthite) + (0.0506*P))/T) - (1.885*anorthite) -2.3715)

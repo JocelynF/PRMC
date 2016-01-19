@@ -5,26 +5,32 @@ from wl1989kdcalc import *
 fa_guess = {'plg':0., 'ol':0., 'cpx':0.}
 kdCalc = kdCalc_langmuir1992
     
-def state(system_components, T, P, uaj, ta, fa = fa_guess):
+def state(system_components, liquid_components=system_components.copy(),
+          T, P=None, uaj, ta, fa=fa_guess):
+    """State determines the liquid composition and phases present in the system
+    at a given temperature and possible pressure (depending on the Kd formula).
+    It is possible to also pass a guess or liquid components. If none are given,
+    then it is assumed there are no phases present and that the liquid components
+    are the system components. T is in Kelvin and P is in bars.
+    """
     tolerance = np.power(10,-5.)
     max_iter = 3000
     qa = {'plg':0., 'ol':0., 'cpx':0.}
     dfa = {}
     # Variable a tells it whether or not to break the loop
     a = True
-    # Liquid composition is initally the same as system since all fa's equal 0
-    liquid_components = {key:system_components[key] for key in system_components.keys()}
+    # Calculate Kd using liquid components
+    kdaj = kdCalc(liquid_components, T, P)
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
-    kdaj = kdCalc(liquid_components, T)
-    for p in fa.keys():
+    for phase in fa:
         #Calculate the initial saturation for each phase
-        qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
-        if (qa[p]>0) or (fa[p]>0):
+        qa[phase] = calculate_Qa(fa, kdaj, phase, system_components, ta, uaj)
+        if (qa[phase]>0) or (fa[phase]>0):
             # Add phase to list if it is oversaturated or it is undersaturated
             # and fa is greater than 0
             # DOUBLE CHECK IF I SHOULD USE STOICH
-            phase_list.append(p)
+            phase_list.append(phase)
     # If there is no phase that is saturated, no need to enter the loop
     if len(phase_list) == 0:
         a = False
@@ -54,23 +60,22 @@ def state(system_components, T, P, uaj, ta, fa = fa_guess):
             x = tst/len(phase_list)
             if x <= tolerance:
                 a = False
-            for component in liquid_components.keys():
-                if component == 'SiO2':
-                    pass
-                else:                
-                    liquid_components[component] = calculate_liquidComp(fa, kdaj, component, system_components)
+            for component in kdaj['cpx']:              
+                liquid_components[component] = calculate_liquidComp(fa, kdaj, component, system_components)
             # Recalculate Saturation
             phase_list = []
-            kdaj = kdCalc(liquid_components, T)
-            for p in fa.keys():
+            kdaj = kdCalc(liquid_components, T, P)
+            for p in fa:
                 qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
                 if (qa[p]>0) or (fa[p]>0):
                     phase_list.append(p)
-
-            if sum(fa.values())>=1:
+            fl = 1.-sum(fa.values())
+            if (1.-fl)>=1:
+                print 1
                 a = True
-            elif sum(fa.values())<0:
+            elif (1.-fl)<0:
                 a = True
+                print 2
         else:
             a = False
     return qa, fa,liquid_components, i
@@ -81,42 +86,41 @@ def state(system_components, T, P, uaj, ta, fa = fa_guess):
 def calculate_Rj(fa, kd, component):
     # Called by calculate_Pab and calculate_Qa
     temp = 0.
-    for p in fa.keys():
+    for p in fa:
         temp += fa[p]*(kd[p][component]-1)
     rj = 1./(1.+temp)
     return rj
 
 def calculate_liquidComp(fa, kd, component, system_components):
-    rj = calculate_Rj(fa, kd, component)
-    clj = system_components[component]*rj
+    if component.isin(['PO5', 'KO5', 'MnO', 'SiO2']:
+        clj = system_components[component]
+    else:
+        rj = calculate_rj(fa, kd, component)
+        clj = system_components[component]*rj[component]
     return clj
     
 def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
     # Called by State
     # Initialize rj, clj, and caj
-    caj = {'plg':{key:0 for key in system_components.keys()}, 
-    'cpx':{key:0 for key in system_components.keys()}, 
-    'ol':{key:0 for key in system_components.keys()}}
+    caj = {'plg':{key:0 for key in kd['cpx']}, 
+    'cpx':{key:0 for key in kd['cpx']}, 
+    'ol':{key:0 for key in kd['cpx']}}
     # Given composition in component form and the Temperature,
     # calculate the saturation of a given phase.
     qa = -ta[phase]
-    for component in system_components.keys():
-        if component == 'SiO2':
-            pass
-        else:
-        # Calculate the values for Rj
+    for component in kd['cpx']:
         # Calculate the liquid composition - doesn't need to be saved
         # Calculate the composition of the phases
-            clj = calculate_liquidComp(fa,kd, component, system_components)
-            caj[phase][component] = clj*kd[phase][component]
-            qa += uaj[phase][component]*caj[phase][component]
+        clj = calculate_liquidComp(fa,kd, component, system_components)
+        caj[phase][component] = clj*kd[phase][component]
+        qa += uaj[phase][component]*caj[phase][component]
     return qa
 
 def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
     # Called by create_pab_dict
     rj = {}
     pab = 0.
-    for component in system_components.keys():
+    for component in system_components:
         if component == 'SiO2':
             pass
         else:
@@ -159,14 +163,14 @@ def newton(qa, fa, kd, system_components, uaj):
     # Don't want to divide by a number smaller than epsilon
     epsilon = np.power(10, -14)
     fa_new = {}
-    for phase1 in fa.keys():
+    for phase1 in fa:
         qa_prime = 0
-        for component in system_components.keys():
+        for component in system_components:
             if component == 'SiO2':
                 pass
             else:
                 kb = 0
-                for phase2 in fa.keys():
+                for phase2 in fa:
                     kb+=kd[phase2][component]-1
                     rj = calculate_Rj(fa, kd, component)
                     qa_prime -= kd[phase1][component]*system_components[component]*rj*rj*kb
