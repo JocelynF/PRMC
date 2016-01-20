@@ -3,7 +3,7 @@ from wl1989stoich import *
 from wl1989kdcalc import *
 
 fa_guess = {'plg':0., 'ol':0., 'cpx':0.}
-kdCalc = kdCalc_langmuir1992
+kdCalc = kdCalc_original
     
 def state(system_components, liquid_components=system_components.copy(),
           T, P=None, uaj, ta, fa=fa_guess):
@@ -17,19 +17,22 @@ def state(system_components, liquid_components=system_components.copy(),
     max_iter = 3000
     qa = {'plg':0., 'ol':0., 'cpx':0.}
     dfa = {}
+    rj = {}
     # Variable a tells it whether or not to break the loop
     a = True
     # Calculate Kd using liquid components
     kdaj = kdCalc(liquid_components, T, P)
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
+    for component in kd['cpx']:
+        rj[component] = calculate_Rj(fa, kdaj, component)
+        liquid_components[component] = rj[component]*system_components[component]
     for phase in fa:
         #Calculate the initial saturation for each phase
-        qa[phase] = calculate_Qa(fa, kdaj, phase, system_components, ta, uaj)
+        qa[phase] = calculate_Qa(liquid_components, kdaj, phase, ta, uaj)
         if (qa[phase]>0) or (fa[phase]>0):
             # Add phase to list if it is oversaturated or it is undersaturated
             # and fa is greater than 0
-            # DOUBLE CHECK IF I SHOULD USE STOICH
             phase_list.append(phase)
     # If there is no phase that is saturated, no need to enter the loop
     if len(phase_list) == 0:
@@ -41,7 +44,7 @@ def state(system_components, liquid_components=system_components.copy(),
         if len(phase_list) !=0:
 #            fa_new = newton(qa, fa, kdaj, liquid_components, uaj)
             # THE FOLLOWING CODE USES THE MATRIX METHOD
-            pab_dict = create_Pab_dict(fa, kdaj, system_components, uaj, phase_list)
+            pab_dict = create_Pab_dict(rj, kdaj, liquid_components, uaj, phase_list)
             dfa = solve_matrix(pab_dict, qa, phase_list)
             if dfa == 'Singular':
                 print 'Singular'
@@ -65,10 +68,13 @@ def state(system_components, liquid_components=system_components.copy(),
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T, P)
-            for p in fa:
-                qa[p] = calculate_Qa(fa, kdaj, p, system_components, ta, uaj)
-                if (qa[p]>0) or (fa[p]>0):
-                    phase_list.append(p)
+            for component in kd['cpx']:
+                rj[component] = calculate_Rj(fa, kdaj, component)
+                liquid_components[component] = rj[component]*system_components[component]
+            for phase in fa:
+                qa[phase] = calculate_Qa(liquid_components, kdaj, phase, ta, uaj)
+                if (qa[phase]>0) or (fa[phase]>0):
+                    phase_list.append(phase)
             fl = 1.-sum(fa.values())
             if (1.-fl)>=1:
                 print 1
@@ -91,15 +97,14 @@ def calculate_Rj(fa, kd, component):
     rj = 1./(1.+temp)
     return rj
 
-def calculate_liquidComp(fa, kd, component, system_components):
+def calculate_liquidComp(rj, kd, component, system_components):
     if component.isin(['PO5', 'KO5', 'MnO', 'SiO2']:
         clj = system_components[component]
     else:
-        rj = calculate_rj(fa, kd, component)
         clj = system_components[component]*rj[component]
     return clj
     
-def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
+def calculate_Qa(clj, kd, phase, ta, uaj):
     # Called by State
     # Initialize rj, clj, and caj
     caj = {'plg':{key:0 for key in kd['cpx']}, 
@@ -111,21 +116,15 @@ def calculate_Qa(fa, kd, phase, system_components, ta, uaj):
     for component in kd['cpx']:
         # Calculate the liquid composition - doesn't need to be saved
         # Calculate the composition of the phases
-        clj = calculate_liquidComp(fa,kd, component, system_components)
-        caj[phase][component] = clj*kd[phase][component]
+        caj[phase][component] = clj[component]*kd[phase][component]
         qa += uaj[phase][component]*caj[phase][component]
     return qa
 
-def calculate_Pab(fa, kd, phase1, phase2, system_components,uaj):
+def calculate_Pab(rj, kd, phase1, phase2, liquid_components,uaj):
     # Called by create_pab_dict
-    rj = {}
     pab = 0.
-    for component in system_components:
-        if component == 'SiO2':
-            pass
-        else:
-            rj = calculate_Rj(fa,kd,component)
-            pab += uaj[phase1][component]*system_components[component]*kd[phase1][component]*(kd[phase2][component]-1)*rj*rj
+    for component in kd['cpx']:
+        pab += uaj[phase1][component]*liquid_components[component]*kd[phase1][component]*(kd[phase2][component]-1)*rj
     return pab
 
 def create_Pab_dict(fa, kd, system_components, uaj, phase_list):
@@ -133,7 +132,7 @@ def create_Pab_dict(fa, kd, system_components, uaj, phase_list):
     pab = {'plg':{}, 'cpx':{}, 'ol':{}}
     for phase1 in phase_list:
         for phase2 in phase_list:
-            pab[phase1][phase2] = calculate_Pab(fa, kd, phase1, phase2, system_components,uaj)
+            pab[phase1][phase2] = calculate_Pab(rj, kd, phase1, phase2, liquid_components,uaj)
     return pab
     
 def solve_matrix(pab, qa, phase_list):
