@@ -7,7 +7,7 @@ def kdCalc_original(components, T, P = None):
     This is the original Weaver and Langmuir
     calculation of Kd's. T in Kelvin.
     """
-    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    keys = ['MgO', 'FeO', 'TiO2', 'CaAl2O4', 'NaAlO2', 'CaSiO3', 'PO52', 'MnO', 'KAlO2']
     cpx = {key:0 for key in keys}
     plg = {key:0 for key in keys}
     ol = {key:0 for key in keys}
@@ -29,7 +29,7 @@ def kdCalc_reynolds(components, T, P = None):
     """
     This uses Reynold's Thesis Calculations.
     """
-    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
     cpx = {key:0 for key in keys}
     plg = {key:0 for key in keys}
     ol = {key:0 for key in keys}
@@ -52,7 +52,7 @@ def kdCalc_langmuir1992(components, T, P):
     This uses Langmuir Et Al. 1992 Calculations.
     P in bars, T in Kelvin.
     """
-    keys = ['CaAl2O4', 'NaAlO2', 'MgO', 'FeO', 'CaSiO3', 'TiO2']
+    keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
     cpx = {key:0 for key in keys}
     plg = {key:0 for key in keys}
     ol = {key:0 for key in keys}
@@ -65,8 +65,8 @@ def kdCalc_langmuir1992(components, T, P):
     cpx['CaAl2O4'] = np.power(10.,((2418. + (0.068*P))/T) -2.3)
     cpx['NaAlO2'] = np.power(10.,((5087. + (0.073*P))/T) - 4.48)
     cpx['TiO2'] = np.power(10.,((1034. + (0.053*P))/T) - 1.27)
-    ol['MgO'] = np.power(10.,((6921./T) + (3.4*components['NaAlO2']/2) + 
-                (6.3*components['KO5']) + (0.00001154*P) - 3.27)/2.3)
+    ol['MgO'] = np.power(10.,((6921./T) + (3.4*components['NaAlO2']/2.) + 
+                (6.3*components['KAlO2']/2.) + (0.00001154*P) - 3.27)/2.3)
     ol['FeO'] = ol['MgO']*(np.power(10., -0.523))
     kd = {'cpx':cpx, 'ol':ol, 'plg':plg}
     return kd

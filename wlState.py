@@ -5,26 +5,32 @@ from wl1989kdcalc import *
 fa_guess = {'plg':0., 'ol':0., 'cpx':0.}
 kdCalc = kdCalc_original
     
-def state(system_components, liquid_components=system_components.copy(),
-          T, P=None, uaj, ta, fa=fa_guess):
+def state(system_components,T, uaj, ta,P=None, fa=fa_guess, liquid_components=None):
     """State determines the liquid composition and phases present in the system
     at a given temperature and possible pressure (depending on the Kd formula).
     It is possible to also pass a guess or liquid components. If none are given,
     then it is assumed there are no phases present and that the liquid components
     are the system components. T is in Kelvin and P is in bars.
+    
+    This is used for all of the major elements.
+    System components must include SiO2, TiO2, Na2O, MgO, FeO, CaO, Al2O3, K2O,
+    MnO, and P2O5.
     """
-    tolerance = np.power(10,-5.)
+    if liquid_components == None:
+        liquid_components = system_components.copy()
     max_iter = 3000
     qa = {'plg':0., 'ol':0., 'cpx':0.}
     dfa = {}
     rj = {}
+    tolerance = np.power(10,-5.)
     # Variable a tells it whether or not to break the loop
     a = True
     # Calculate Kd using liquid components
     kdaj = kdCalc(liquid_components, T, P)
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
-    for component in kd['cpx']:
+    liquid_components = {component:0. for component in kdaj['cpx']}
+    for component in kdaj['cpx']:
         rj[component] = calculate_Rj(fa, kdaj, component)
         liquid_components[component] = rj[component]*system_components[component]
     for phase in fa:
@@ -39,6 +45,7 @@ def state(system_components, liquid_components=system_components.copy(),
         a = False
     i = 0
     while (a == True) and (i<max_iter):
+        #print 'i:', i
         i += 1
         # Use Newton Method to find new Fa if there are phases present  
         if len(phase_list) !=0:
@@ -57,31 +64,34 @@ def state(system_components, liquid_components=system_components.copy(),
                     fa_new[phase] = 0.1*fa[phase]
                 elif fa_new[phase]>1:
                     fa_new[phase]= 0.9 + .1*fa[phase]
-                tst += abs(fa[phase] - fa_new[phase])
+                #tst += abs(fa[phase] - fa_new[phase])
                 fa[phase] = fa_new[phase]
             # Recalculate Liquid Percent
-            x = tst/len(phase_list)
-            if x <= tolerance:
-                a = False
-            for component in kdaj['cpx']:              
-                liquid_components[component] = calculate_liquidComp(fa, kdaj, component, system_components)
+#            x = tst/len(phase_list)
+#            if x <= tolerance:
+#                a = False
+            for component in kdaj['cpx']:
+                rj[component] = calculate_Rj(fa, kdaj, component)
+                liquid_components[component] = rj[component]*system_components[component]
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T, P)
-            for component in kd['cpx']:
+            for component in kdaj['cpx']:
                 rj[component] = calculate_Rj(fa, kdaj, component)
                 liquid_components[component] = rj[component]*system_components[component]
             for phase in fa:
                 qa[phase] = calculate_Qa(liquid_components, kdaj, phase, ta, uaj)
                 if (qa[phase]>0) or (fa[phase]>0):
                     phase_list.append(phase)
+            qa_new = [qa[x] for x in phase_list]
+            # Qa should be very closs to zero
+            if all(np.abs(value) <= tolerance for value in qa_new):
+                a = False
             fl = 1.-sum(fa.values())
             if (1.-fl)>=1:
-                print 1
                 a = True
             elif (1.-fl)<0:
                 a = True
-                print 2
         else:
             a = False
     return qa, fa,liquid_components, i
@@ -97,12 +107,6 @@ def calculate_Rj(fa, kd, component):
     rj = 1./(1.+temp)
     return rj
 
-def calculate_liquidComp(rj, kd, component, system_components):
-    if component.isin(['PO5', 'KO5', 'MnO', 'SiO2']:
-        clj = system_components[component]
-    else:
-        clj = system_components[component]*rj[component]
-    return clj
     
 def calculate_Qa(clj, kd, phase, ta, uaj):
     # Called by State
@@ -124,10 +128,10 @@ def calculate_Pab(rj, kd, phase1, phase2, liquid_components,uaj):
     # Called by create_pab_dict
     pab = 0.
     for component in kd['cpx']:
-        pab += uaj[phase1][component]*liquid_components[component]*kd[phase1][component]*(kd[phase2][component]-1)*rj
+        pab += uaj[phase1][component]*liquid_components[component]*kd[phase1][component]*(kd[phase2][component]-1)*rj[component]
     return pab
 
-def create_Pab_dict(fa, kd, system_components, uaj, phase_list):
+def create_Pab_dict(rj, kd, liquid_components, uaj, phase_list):
     # Called by State
     pab = {'plg':{}, 'cpx':{}, 'ol':{}}
     for phase1 in phase_list:
@@ -151,7 +155,6 @@ def solve_matrix(pab, qa, phase_list):
          dfa = 'Singular'
     # Solve Matrix
     else:
-        pab_array = pab_array
         dfa_array = np.dot(np.linalg.inv(pab_array),(qa_array))
         # Convert back to Dicitonaries
         for k in xrange(0,len(phase_list)):
