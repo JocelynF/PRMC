@@ -3,9 +3,8 @@ from wl1989stoich import *
 from wl1989kdcalc import *
 
 fa_guess = {'plg':0., 'ol':0., 'cpx':0.}
-kdCalc = kdCalc_original
     
-def state(system_components,T, uaj, ta,P=None, fa=fa_guess, liquid_components=None):
+def state(system_components,T, uaj, ta, P=None, kdCalc = kdCalc_original):
     """State determines the liquid composition and phases present in the system
     at a given temperature and possible pressure (depending on the Kd formula).
     It is possible to also pass a guess or liquid components. If none are given,
@@ -16,17 +15,20 @@ def state(system_components,T, uaj, ta,P=None, fa=fa_guess, liquid_components=No
     System components must include SiO2, TiO2, Na2O, MgO, FeO, CaO, Al2O3, K2O,
     MnO, and P2O5.
     """
-    if liquid_components == None:
-        liquid_components = system_components.copy()
-    max_iter = 3000
+    fa = {'plg':0., 'ol':0., 'cpx':0.}
+    print fa
+    print P
+    liquid_components = system_components.copy()
+    max_iter = 30000
     qa = {'plg':0., 'ol':0., 'cpx':0.}
     dfa = {}
     rj = {}
-    tolerance = np.power(10,-5.)
+    tolerance = np.power(10.,-5.)
     # Variable a tells it whether or not to break the loop
     a = True
     # Calculate Kd using liquid components
     kdaj = kdCalc(liquid_components, T, P)
+    print kdaj
     # Calculate new solid fractions in equilibrium with the current state
     phase_list = []
     liquid_components = {component:0. for component in kdaj['cpx']}
@@ -76,6 +78,7 @@ def state(system_components,T, uaj, ta,P=None, fa=fa_guess, liquid_components=No
             # Recalculate Saturation
             phase_list = []
             kdaj = kdCalc(liquid_components, T, P)
+            print kdaj
             for component in kdaj['cpx']:
                 rj[component] = calculate_Rj(fa, kdaj, component)
                 liquid_components[component] = rj[component]*system_components[component]
@@ -94,6 +97,7 @@ def state(system_components,T, uaj, ta,P=None, fa=fa_guess, liquid_components=No
                 a = True
         else:
             a = False
+    print i
     return qa, fa,liquid_components, i
             
             

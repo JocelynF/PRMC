@@ -8,9 +8,9 @@ def kdCalc_original(components, T, P = None):
     calculation of Kd's. T in Kelvin.
     """
     keys = ['MgO', 'FeO', 'TiO2', 'CaAl2O4', 'NaAlO2', 'CaSiO3', 'PO52', 'MnO', 'KAlO2']
-    cpx = {key:0 for key in keys}
-    plg = {key:0 for key in keys}
-    ol = {key:0 for key in keys}
+    cpx = {key:0. for key in keys}
+    plg = {key:0. for key in keys}
+    ol = {key:0. for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     plg['CaAl2O4'] = np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     plg['NaAlO2'] = np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
@@ -30,9 +30,9 @@ def kdCalc_reynolds(components, T, P = None):
     This uses Reynold's Thesis Calculations.
     """
     keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
-    cpx = {key:0 for key in keys}
-    plg = {key:0 for key in keys}
-    ol = {key:0 for key in keys}
+    cpx = {key:0. for key in keys}
+    plg = {key:0. for key in keys}
+    ol = {key:0. for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
     plg['CaAl2O4'] = 0.99*np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
     plg['NaAlO2'] = 0.92*np.power(10.,(((3195.+(3283.*anorthite))/T) - (2.318 + (1.885*anorthite))))
@@ -53,12 +53,12 @@ def kdCalc_langmuir1992(components, T, P):
     P in bars, T in Kelvin.
     """
     keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
-    cpx = {key:0 for key in keys}
-    plg = {key:0 for key in keys}
-    ol = {key:0 for key in keys}
+    cpx = {key:0. for key in keys}
+    plg = {key:0. for key in keys}
+    ol = {key:0. for key in keys}
     anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
-    plg['CaAl2O4'] = np.power(10.,(2446./T) - 1.122 + (0.2562*anorthite))
-    plg['NaAlO2'] = np.power(10.,((3195. + (3283*anorthite) + (0.0506*P))/T) - (1.885*anorthite) -2.3715)
+    plg['CaAl2O4'] = np.power(10.,(2446./T) - (1.122  - 0.2562*anorthite))
+    plg['NaAlO2'] = np.power(10.,((3195. + (3283.*anorthite) + (0.0506*P))/T) - (1.885*anorthite) -2.3715)
     cpx['MgO'] = np.power(10.,(((3798. + (0.021*P))/T) - 2.28))
     cpx['FeO'] = cpx['MgO']*np.power(10.,-0.6198)
     cpx['CaSiO3'] = np.power(10.,((1783. + (0.0038*P))/T) -0.753)

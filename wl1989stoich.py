@@ -41,7 +41,7 @@ def molFractoComponent(cationMolFrac):
     compCationMolFrac['CaAl2O4'] = 1.5*al_CaAl2O4
     compCationMolFrac['CaSiO3'] = 2.*(cationMolFrac['CaO'] - (compCationMolFrac['CaAl2O4']/3.))
     compCationMolFrac['TiO2'] = cationMolFrac['TiO2']
-    compCationMolFrac['SiO2'] = cationMolFrac['SiO2'] - (compCationMolFrac['CaSiO3']/2.)
+    #compCationMolFrac['SiO2'] = cationMolFrac['SiO2'] - (compCationMolFrac['CaSiO3']/2.)
     #compCationMolFrac['HO5'] = cationMolFrac['HO5']
     return compCationMolFrac
 
@@ -62,7 +62,7 @@ def cationFracToWeight(components):
     oxide['K2O'] = (components['KAlO2']/2.)*(2.*mass['K']+mass['O'])/2.
     oxide['P2O5'] = components['PO52']*(2.*mass['P']+5.*mass['O'])/2.
     oxide['MnO'] = components['MnO']*(mass['Mn']+mass['O'])
-    oxide['SiO2'] = (components['SiO2']+(components['CaSiO3']/2.))*(mass['Si']+(2*mass['O']))
+    oxide['SiO2'] = (1.-sum(components.values())+(components['CaSiO3']/2.))*(mass['Si']+(2*mass['O']))
     tot = sum(oxide.values())/100.
     oxide_dict = {element: oxide[element]/tot for element in oxide}
     return oxide_dict
