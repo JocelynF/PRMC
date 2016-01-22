@@ -5,9 +5,9 @@ from mixing import *
 import numpy as np
 import pandas as pd
 
-kd_dict = {'cpx':{'La':0.07,   'Sr':0.1,    'Ba':0.0005,   'Sc':2,    'Th':0.0013,  'Ni':4.4,  'K2O': 0.007, 'V':0.6, 'P2O5':0.05, 'MnO':0.85},
-          'plg':{'La':0.08,    'Sr':1.5,    'Ba':0.3,      'Sc':0.08, 'Th':0.13,    'Ni':0.06, 'K2O':0.15, 'V':0.035, 'P2O5':0.1, 'MnO':0.06},
-          'ol':{'La':0.000001, 'Sr':0.0001, 'Ba':0.000002, 'Sc':0.3,  'Th':0.00001, 'Ni':10., 'K2O':0.001, 'V':0.09, 'P2O5':0.2, 'MnO':1.0}}
+kd_dict = {'cpx':{'La':0.07,   'Sr':0.1,    'Ba':0.0005,   'Sc':2,    'Th':0.0013,  'Ni':4.4,  'K2O': 0.007, 'V':0.6, 'P2O5':0.05, 'MnO':1.02},
+          'plg':{'La':0.08,    'Sr':1.5,    'Ba':0.3,      'Sc':0.08, 'Th':0.13,    'Ni':0.06, 'K2O':0.15, 'V':0.035, 'P2O5':0.1, 'MnO':0.031},
+          'ol':{'La':0.000001, 'Sr':0.0001, 'Ba':0.000002, 'Sc':0.3,  'Th':0.00001, 'Ni':10., 'K2O':0.001, 'V':0.09, 'P2O5':0.2, 'MnO':1.63}}
 
 
 ta = {'cpx':1., 'plg':1., 'ol':2./3.}
@@ -22,7 +22,7 @@ def get_first_T(system_components, P = 1., kdCalc = kdCalc_original):
     deltaT = 100.
     qa, fa, major_liquid_components, num_iter = state(system_components,firstT,uaj, ta, P=P, kdCalc= kdCalc)
     fl = 1-sum(fa.values())
-    if num_iter == 30000:
+    if num_iter == 3000:
         print 'MAX ITERATION!'
     while (fl == 1.) or (deltaT > 1.):
         if fl == 1.:
@@ -33,7 +33,7 @@ def get_first_T(system_components, P = 1., kdCalc = kdCalc_original):
             firstT=firstT-deltaT
         qa, fa, major_liquid_components, num_iter = state(system_components,firstT,uaj, ta, P=P, kdCalc= kdCalc)
         fl = 1-sum(fa.values())
-        if num_iter == 30000:
+        if num_iter == 3000:
             print 'MAX ITERATION!'
             break
     return firstT
@@ -48,9 +48,12 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P = 1.,
     major_oxide_dict = {key:[] for key in major_start_comp}
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
+    fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
     for i in xrange(len(trange)):
         # Major Elements
         qa, fa, major_liquid_components, num_iter = state(system_components,trange[-i-1],uaj, ta, P = P, kdCalc = kdCalc)
+        for phase in fa:
+            fa_dict[phase].append(fa[phase])
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-sum(fa.values())
         fl.append(liq)
@@ -76,7 +79,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P = 1.,
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
             #Add erupted composition to eruption dictionary
             trace_dict[elem].append(trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem]))
-    return fl, major_oxide_dict, trace_dict
+    return fl, fa_dict, major_oxide_dict, trace_dict
 
 
 #Fractional Crystallization - System Components change after each iteration
@@ -90,6 +93,7 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
     major_oxide_dict = {key:[] for key in major_start_comp}
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
+    fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
     for i in xrange(len(trange)):
         # Major Elements
         if i == 0:
@@ -97,6 +101,8 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
         else:
             major_liquid_components = oxideToComponent(major_oxides)
             qa, fa, major_liquid_components, num_iter = state(major_liquid_components,trange[-i-1],uaj, ta, P=P, kdCalc = kdCalc)
+        for phase in fa:
+            fa_dict[phase].append(fa[phase])
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = (1. - sum(fa.values()))
         if i == 0:
@@ -126,7 +132,7 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
             #Add erupted composition to eruption dictionary
             trace_liquid_comp[elem] = trace_liquid_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
             trace_dict[elem].append(trace_liquid_comp[elem])
-    return fl, major_oxide_dict, trace_dict
+    return fl, fa_dict, major_oxide_dict, trace_dict
 
 
 ##Equilibrium Crystallization - System Components never Change 
@@ -138,7 +144,10 @@ def eq_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc = 
     major_oxide_dict = {key:[] for key in major_start_comp}
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
+    fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
     qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta, P = P, kdCalc = kdCalc)
+    for phase in fa:
+        fa_dict[phase].append(fa[phase])
     major_oxides = cationFracToWeight(major_liquid_components)
     liq = 1.-sum(fa.values())
     fl.append(liq)
@@ -167,6 +176,8 @@ def eq_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc = 
     while fl[-1]>f_stop:
         t = t - tstep
         qa, fa,major_liquid_components, num_iter = state(system_components,t,uaj, ta, P = P, kdCalc = kdCalc)
+        for phase in fa:
+            fa_dict[phase].append(fa[phase])
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-sum(fa.values())
         fl.append(liq)
@@ -192,7 +203,7 @@ def eq_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc = 
                     bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
             #Add erupted composition to eruption dictionary
             trace_dict[elem].append(trace_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem]))
-    return fl, major_oxide_dict, trace_dict
+    return fl, fa_dict,major_oxide_dict, trace_dict
 
 
 ##Fractional Crystallization - System Components change after each iteration
@@ -206,7 +217,10 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
     major_oxide_dict = {key:[] for key in major_start_comp}
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
+    fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
     qa, fa, major_liquid_components, num_iter = state(major_liquid_components,t,uaj, ta, P = P, kdCalc = kdCalc)
+    for phase in fa:
+        fa_dict[phase].append(fa[phase])
     major_oxides = cationFracToWeight(major_liquid_components)
     liq = (1. - sum(fa.values()))
     fl.append(liq)
@@ -237,6 +251,8 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
         t = t-tstep
         major_liquid_components = oxideToComponent(major_oxides)
         qa, fa, major_liquid_components, num_iter = state(major_liquid_components,t,uaj, ta, P = P, kdCalc = kdCalc)
+        for phase in fa:
+            fa_dict[phase].append(fa[phase])
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = (1. - sum(fa.values()))
         fl.append(liq*fl[-1])
@@ -262,7 +278,7 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
             #Add erupted composition to eruption dictionary
             trace_liquid_comp[elem] = trace_liquid_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
             trace_dict[elem].append(trace_liquid_comp[elem])
-    return fl, major_oxide_dict, trace_dict
+    return fl,fa_dict, major_oxide_dict, trace_dict
 
 
    
