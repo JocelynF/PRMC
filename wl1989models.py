@@ -36,9 +36,6 @@ def get_first_T(system_components, P = 1., kdCalc = kdCalc_original):
         if num_iter == 30000:
             print 'MAX ITERATION!'
             break
-        print fl
-        print deltaT
-        print firstT
     return firstT
 
 
@@ -53,11 +50,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P = 1.,
     fl = []
     for i in xrange(len(trange)):
         # Major Elements
-        #if i == 0:
         qa, fa, major_liquid_components, num_iter = state(system_components,trange[-i-1],uaj, ta, P = P, kdCalc = kdCalc)
-        #else:
-            #major_liquid_components = oxideToComponent(major_oxides)
-            #qa, fa, major_liquid_components, num_iter = state(system_components,trange[-i-1],uaj, ta, P = P, fa = fa, liquid_components = major_liquid_components, kdCalc = kdCalc)
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-sum(fa.values())
         fl.append(liq)
@@ -103,7 +96,7 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
             qa, fa, major_liquid_components, num_iter = state(major_liquid_components,trange[-i-1],uaj, ta, P=P, kdCalc = kdCalc)
         else:
             major_liquid_components = oxideToComponent(major_oxides)
-            qa, fa, major_liquid_components, num_iter = state(major_liquid_components,trange[-i-1],uaj, ta, P=P,fa = fa, liquid_components = major_liquid_components, kdCalc = kdCalc)
+            qa, fa, major_liquid_components, num_iter = state(major_liquid_components,trange[-i-1],uaj, ta, P=P, kdCalc = kdCalc)
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = (1. - sum(fa.values()))
         if i == 0:

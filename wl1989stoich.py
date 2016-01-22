@@ -1,4 +1,3 @@
-import numpy as np
 
 mass = {'Si':28.0855, 'Ti':47.867, 'Al':26.9815, 'Fe':55.845, 'Mg':24.305, 
         'Ca':40.078, 'Na':22.98977,'O':15.999,'K':39.0987, 'P':30.973, 'Mn':54.938}
@@ -30,7 +29,7 @@ def oxideToMolFracElement(oxides):
       
 def molFractoComponent(cationMolFrac):
     compCationMolFrac = {}
-    #Components: CaAl2O4, NaAlO2, MgO, FeO, CaSiO3, TiO2, SiO2, KAlO2, PO52, MnO
+    #Components: CaAl2O4, NaAlO2, MgO, FeO, CaSiO3, TiO2, KAlO2, PO52, MnO
     compCationMolFrac['MgO'] = cationMolFrac['MgO']
     compCationMolFrac['FeO'] = cationMolFrac['FeO']
     compCationMolFrac['KAlO2'] = 2*cationMolFrac['KO5']

@@ -65,8 +65,54 @@ def kdCalc_langmuir1992(components, T, P):
     cpx['CaAl2O4'] = np.power(10.,((2418. + (0.068*P))/T) -2.3)
     cpx['NaAlO2'] = np.power(10.,((5087. + (0.073*P))/T) - 4.48)
     cpx['TiO2'] = np.power(10.,((1034. + (0.053*P))/T) - 1.27)
-    ol['MgO'] = np.power(10.,((6921./T) + (3.4*components['NaAlO2']/2.) + 
-                (6.3*components['KAlO2']/2.) + (0.00001154*P) - 3.27)/2.3)
+    ol['MgO'] = np.exp((6921./T) + (3.4*components['NaAlO2']/2.) + 
+                (6.3*components['KAlO2']/2.) + (0.00001154*P) - 3.27)
     ol['FeO'] = ol['MgO']*(np.power(10., -0.523))
+    kd = {'cpx':cpx, 'ol':ol, 'plg':plg}
+    return kd
+    
+    
+def kdCalc_hbasalt(components, T, P):
+    """
+    This uses Langmuir Et Al. 1992 Calculations.
+    P in bars, T in Kelvin.
+    """
+    H = 0.
+    keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
+    cpx = {key:0. for key in keys}
+    plg = {key:0. for key in keys}
+    ol = {key:0. for key in keys}
+    anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
+    plg['CaAl2O4'] = np.power(10.,(2405./T) - (1.12  - 0.2562*anorthite)+0.000005771*P - 0.00712275*H)
+    plg['NaAlO2'] = np.power(10.,((3195. + (3283.*anorthite) + (0.0254*P) -(30.*H))/T) - (1.885*anorthite) -2.35)
+    cpx['MgO'] = np.power(10.,(((3798. + (0.017*P))/T) - 2.28 - (0.0036*H)))
+    cpx['FeO'] = cpx['MgO']*0.24
+    cpx['CaSiO3'] = np.power(10.,((1783. + (0.0038*P))/T) -0.753)
+    cpx['CaAl2O4'] = np.power(10.,((2432. + (0.062*P))/T) -2.3 - (0.000095*H*components['KAlO2']/2.))
+    cpx['NaAlO2'] = np.power(10.,((4829. + (0.079*P))/T) - 4.48-(0.0045*H))
+    cpx['TiO2'] = np.power(10.,((1034. + (0.0531*P))/T) - 1.27)
+    ol['MgO'] = np.exp((6277./T) + (3.3*components['NaAlO2']/2.) + 
+                (6.3*components['KAlO2']/2.) + (0.0000134*P) - 2.8474 + 
+                (0.000095*H*components['KAlO2']/2.) + (0.000538*components['KAlO2']/2.))
+    ol['FeO'] = ol['MgO']*0.29
+    kd = {'cpx':cpx, 'ol':ol, 'plg':plg}
+    return kd
+    
+def kdCalc_basalt4hiP(components, T, P):
+    keys = ['MgO', 'FeO', 'TiO2', 'PO52', 'MnO', 'CaAl2O4', 'NaAlO2', 'KAlO2', 'CaSiO3']
+    cpx = {key:0. for key in keys}
+    plg = {key:0. for key in keys}
+    ol = {key:0. for key in keys}
+    anorthite=components['CaAl2O4']/(components['CaAl2O4']+1.5*components['NaAlO2'])
+    plg['CaAl2O4'] = np.power(10.,((2446./T) - (1.122+0.2562*anorthite)))
+    plg['NaAlO2'] = np.power(10.,((((0.345*P) + (3283.*anorthite) + 3195.)/T) - (1.885*anorthite) - 2.349))
+    cpx['MgO'] = np.power(10.,((3798./(T-(0.008*P))) - 2.25))
+    cpx['FeO'] = (0.24 + (0.000007*P))*cpx['MgO']
+    cpx['CaSiO3'] = np.power(10.,((2357./(T-(0.01*P)))-1.22))
+    cpx['CaAl2O4'] = np.power(10.,(14380./(T - (0.013*P))) - 10.75)
+    cpx['NaAlO2'] = np.power(10.,((5087./(T-(0.016*P)))-4.48))
+    cpx['TiO2'] = 0.3
+    ol['MgO'] = np.power(10., (2715./(T - (0.004*P))) - 1.158)
+    ol['FeO'] = ol['MgO']*0.3
     kd = {'cpx':cpx, 'ol':ol, 'plg':plg}
     return kd
