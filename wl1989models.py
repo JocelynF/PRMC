@@ -57,23 +57,22 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P = 1.,
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-sum(fa.values())
         fl.append(liq)
+        fa_tot = sum(fa.values())
         # MnO, P2O5, K2O
         for elem in ['K2O', 'P2O5', 'MnO']:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
             #Add erupted composition to eruption dictionary
-            major_oxides[elem] = major_oxides[elem]/(liq +(1.-liq)*bulk_d[elem])
+            major_oxides[elem] = major_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
         for key in major_oxides:
             major_oxide_dict[key].append(major_oxides[key])
         #Trace Elements
         for elem in trace_start_comp:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
@@ -109,15 +108,16 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
             fl.append(liq)
         else:
             fl.append(liq*fl[-1])
+        fa_tot = sum(fa.values())
         # MnO, P2O5, K2O
+        print liq
         for elem in ['K2O', 'P2O5', 'MnO']:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
-            #Add erupted composition to eruption dictionary
+                #Add erupted composition to eruption dictionary
             major_oxides[elem] = major_oxides[elem]/(liq +(1.-liq)*bulk_d[elem])
         for key in major_oxides:
             major_oxide_dict[key].append(major_oxides[key])
@@ -125,7 +125,6 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
         for elem in trace_start_comp:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
@@ -151,23 +150,22 @@ def eq_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc = 
     major_oxides = cationFracToWeight(major_liquid_components)
     liq = 1.-sum(fa.values())
     fl.append(liq)
+    fa_tot = sum(fa.values())
     # MnO, P2O5, K2O
     for elem in ['K2O', 'P2O5', 'MnO']:
         #Calculate Bulk D
         bulk_d[elem] = 0.
-        fa_tot = sum(fa.values())
         if fa_tot != 0.:
             for phase in fa:
                 bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
         #Add erupted composition to eruption dictionary
-        major_oxides[elem] = major_oxides[elem]/(liq +(1.-liq)*bulk_d[elem])
+        major_oxides[elem] = major_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
     for key in major_oxides:
         major_oxide_dict[key].append(major_oxides[key])
     #Trace Elements
     for elem in trace_start_comp:
         #Calculate Bulk D
         bulk_d[elem] = 0.
-        fa_tot = sum(fa.values())
         if fa_tot != 0.:
             for key in fa:
                 bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
@@ -181,23 +179,22 @@ def eq_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc = 
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = 1.-sum(fa.values())
         fl.append(liq)
+        fa_tot = sum(fa.values())
         # MnO, P2O5, K2O
         for elem in ['K2O', 'P2O5', 'MnO']:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
             #Add erupted composition to eruption dictionary
-            major_oxides[elem] = major_oxides[elem]/(liq +(1.-liq)*bulk_d[elem])
+            major_oxides[elem] = major_start_comp[elem]/(liq +(1.-liq)*bulk_d[elem])
         for key in major_oxides:
             major_oxide_dict[key].append(major_oxides[key])
         #Trace Elements
         for elem in trace_start_comp:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for key in fa:
                     bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
@@ -224,11 +221,11 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
     major_oxides = cationFracToWeight(major_liquid_components)
     liq = (1. - sum(fa.values()))
     fl.append(liq)
+    fa_tot = sum(fa.values())
     # MnO, P2O5, K2O
     for elem in ['K2O', 'P2O5', 'MnO']:
         #Calculate Bulk D
         bulk_d[elem] = 0.
-        fa_tot = sum(fa.values())
         if fa_tot != 0.:
             for phase in fa:
                 bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
@@ -240,7 +237,6 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
     for elem in trace_start_comp:
         #Calculate Bulk D
         bulk_d[elem] = 0.
-        fa_tot = sum(fa.values())
         if fa_tot != 0.:
             for key in fa:
                 bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
@@ -256,10 +252,10 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
         major_oxides = cationFracToWeight(major_liquid_components)
         liq = (1. - sum(fa.values()))
         fl.append(liq*fl[-1])
+        fa_tot = sum(fa.values())
         for elem in ['K2O', 'P2O5', 'MnO']:
             #Calculate Bulk D
             bulk_d[elem] = 0.
-            fa_tot = sum(fa.values())
             if fa_tot != 0.:
                 for phase in fa:
                     bulk_d[elem] += (fa[phase]/fa_tot)*kd_dict[phase][elem]
@@ -271,7 +267,6 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
         for elem in trace_start_comp:
             #Calculate Bulk D
             bulk_d[elem] = 0
-            fa_tot = sum(fa.values())
             if fa_tot != 0:
                 for key in fa:
                     bulk_d[elem] += (fa[key]/fa_tot)*kd_dict[key][elem]
@@ -282,57 +277,57 @@ def frac_model_fstop(f_stop, major_start_comp, trace_start_comp, P = 1., kdCalc 
 
 
    
-#def insitu_model(f_stop, major_start_comp, trace_start_comp, small_f=0.5):
-#    sz = 0.01 #percent going to solidification zone
-#    major_sz_comp = major_start_comp.copy()
-#    trace_sz_comp = trace_start_comp.copy()
-#    #Initialize liquid dictionaries
-#    major_liquid_dict = {key:[] for key in major_start_comp.keys()}
-#    trace_liquid_dict = {key:[] for key in trace_start_comp.keys()}
-#    #Big F is the total Ml/Mo from Langmuir 1989
-#    big_f = []
-#    #Crystallize solidification zone to small_f
-#    fl, major_oxide_dict, trace_dict = eq_model_fstop(small_f, major_sz_comp, trace_sz_comp)
-#    #Final Oxide composition is the solidification zone liquid composition
-#    for key in major_oxide_dict:
-#        major_sz_comp[key] = major_oxide_dict[key][-1]
-#    for key in trace_dict:
-#        trace_sz_comp[key] = trace_dict[key][-1]
-#    #Calculate percent liquid in solidification zone
-#    liq = fl[-1]*sz
-#    #Add Ml/Mo to list
-#    big_f.append(1.-sz+liq)
-#    #Mix solidification zone liquid with starting composition
-#    major_liquid_comp = magma_mixing(major_sz_comp, major_start_comp, liq/big_f[-1])
-#    trace_liquid_comp = magma_mixing(trace_sz_comp, trace_start_comp, liq/big_f[-1])
-#    #Add this composition to the final liquid dictionary
-#    for key in major_liquid_comp:
-#        major_liquid_dict[key].append(major_liquid_comp[key])
-#    for key in trace_liquid_comp:
-#        trace_liquid_dict[key].append(trace_liquid_comp[key])    
-#    #repeat this process until big_f is equal to f_stop   
-#    while big_f[-1] > f_stop:  
-#        #Crystallize solidification zone to small_f
-#        fl, major_oxide_dict, trace_dict = eq_model_fstop(small_f, major_liquid_comp, trace_liquid_comp)
-#        #Final Oxide composition is the solidification zone liquid composition
-#        for key in major_oxide_dict:
-#            major_sz_comp[key] = major_oxide_dict[key][-1]
-#        for key in trace_dict:
-#            trace_sz_comp[key] = trace_dict[key][-1]
-#        #Calculate percent liquid in solidification zone
-#        liq = fl[-1]*sz
-#        #Add Ml/Mo to list
-#        big_f.append(big_f[-1]-sz+liq)
-#        #Mix solidification zone liquid with starting composition
-#        major_liquid_comp = magma_mixing(major_sz_comp, major_liquid_comp, liq/big_f[-1])
-#        trace_liquid_comp = magma_mixing(trace_sz_comp, trace_liquid_comp, liq/big_f[-1])
-#        #Add this composition to the final liquid dictionary
-#        for key in major_liquid_comp:
-#            major_liquid_dict[key].append(major_liquid_comp[key])
-#        for key in trace_liquid_comp:
-#            trace_liquid_dict[key].append(trace_liquid_comp[key])
-#    return big_f, major_liquid_dict, trace_liquid_dict
-#    
+def insitu_model(f_stop, major_start_comp, trace_start_comp, small_f=0.5, P = 1., kdCalc = kdCalc_original):
+    sz = 0.01 #percent going to solidification zone
+    major_sz_comp = major_start_comp.copy()
+    trace_sz_comp = trace_start_comp.copy()
+    #Initialize liquid dictionaries
+    major_liquid_dict = {key:[] for key in major_start_comp.keys()}
+    trace_liquid_dict = {key:[] for key in trace_start_comp.keys()}
+    #Big F is the total Ml/Mo from Langmuir 1989
+    big_f = []
+    #Crystallize solidification zone to small_f
+    fl, fa, major_oxide_dict, trace_dict = eq_model_fstop(small_f, major_sz_comp, trace_sz_comp, P = P, kdCalc = kdCalc)
+    #Final Oxide composition is the solidification zone liquid composition
+    for key in major_oxide_dict:
+        major_sz_comp[key] = major_oxide_dict[key][-1]
+    for key in trace_dict:
+        trace_sz_comp[key] = trace_dict[key][-1]
+    #Calculate percent liquid in solidification zone
+    liq = fl[-1]*sz
+    #Add Ml/Mo to list
+    big_f.append(1.-sz+liq)
+    #Mix solidification zone liquid with starting composition
+    major_liquid_comp = magma_mixing(major_sz_comp, major_start_comp, liq/big_f[-1])
+    trace_liquid_comp = magma_mixing(trace_sz_comp, trace_start_comp, liq/big_f[-1])
+    #Add this composition to the final liquid dictionary
+    for key in major_liquid_comp:
+        major_liquid_dict[key].append(major_liquid_comp[key])
+    for key in trace_liquid_comp:
+        trace_liquid_dict[key].append(trace_liquid_comp[key])    
+    #repeat this process until big_f is equal to f_stop   
+    while big_f[-1] > f_stop:  
+        #Crystallize solidification zone to small_f
+        fl, fa, major_oxide_dict, trace_dict = eq_model_fstop(small_f, major_liquid_comp, trace_liquid_comp, P = P, kdCalc = kdCalc)
+        #Final Oxide composition is the solidification zone liquid composition
+        for key in major_oxide_dict:
+            major_sz_comp[key] = major_oxide_dict[key][-1]
+        for key in trace_dict:
+            trace_sz_comp[key] = trace_dict[key][-1]
+        #Calculate percent liquid in solidification zone
+        liq = fl[-1]*sz
+        #Add Ml/Mo to list
+        big_f.append(big_f[-1]-sz+liq)
+        #Mix solidification zone liquid with starting composition
+        major_liquid_comp = magma_mixing(major_sz_comp, major_liquid_comp, liq/big_f[-1])
+        trace_liquid_comp = magma_mixing(trace_sz_comp, trace_liquid_comp, liq/big_f[-1])
+        #Add this composition to the final liquid dictionary
+        for key in major_liquid_comp:
+            major_liquid_dict[key].append(major_liquid_comp[key])
+        for key in trace_liquid_comp:
+            trace_liquid_dict[key].append(trace_liquid_comp[key])
+    return big_f, major_liquid_dict, trace_liquid_dict
+    
     
     
     
