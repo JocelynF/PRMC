@@ -23,7 +23,7 @@ def get_first_T(system_components, P = 1., kdCalc = kdCalc_original):
     qa, fa, major_liquid_components, num_iter = state(system_components,firstT,uaj, ta, P=P, kdCalc= kdCalc)
     fl = 1-sum(fa.values())
     if num_iter == 3000:
-        print 'MAX ITERATION!'
+        print('MAX ITERATION!')
     while (fl == 1.) or (deltaT > 1.):
         if fl == 1.:
             firstT = firstT-deltaT
@@ -34,7 +34,7 @@ def get_first_T(system_components, P = 1., kdCalc = kdCalc_original):
         qa, fa, major_liquid_components, num_iter = state(system_components,firstT,uaj, ta, P=P, kdCalc= kdCalc)
         fl = 1-sum(fa.values())
         if num_iter == 3000:
-            print 'MAX ITERATION!'
+            print('MAX ITERATION!')
             break
     return firstT
 
@@ -49,7 +49,7 @@ def eq_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P = 1.,
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
     fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
-    for i in xrange(len(trange)):
+    for i in range(len(trange)):
         # Major Elements
         qa, fa, major_liquid_components, num_iter = state(system_components,trange[-i-1],uaj, ta, P = P, kdCalc = kdCalc)
         for phase in fa:
@@ -84,7 +84,7 @@ def frac_model_trange(t_start, t_stop, major_start_comp, trace_start_comp, P=1.,
     trace_dict = {key:[] for key in trace_start_comp}
     fl = []
     fa_dict = {phase:[] for phase in ['plg', 'cpx', 'ol']}
-    for i in xrange(len(trange)):
+    for i in range(len(trange)):
         # Major Elements
         if i == 0:
             qa, fa, major_liquid_components, num_iter = state(major_liquid_components,trange[-i-1],uaj, ta, P=P, kdCalc = kdCalc)

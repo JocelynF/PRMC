@@ -53,7 +53,7 @@ def state(system_components,T, uaj, ta, P=0., kdCalc = kdCalc_original):
             pab_dict = create_Pab_dict(rj, kdaj, liquid_components, uaj, phase_list)
             dfa = solve_matrix(pab_dict, qa, phase_list)
             if dfa == 'Singular':
-                print 'Singular'
+                print('Singular')
             fa_new = {}
             tst = 0.
             for phase in phase_list:
@@ -145,9 +145,9 @@ def solve_matrix(pab, qa, phase_list):
     pab_array = np.zeros([len(phase_list),len(phase_list)])
     qa_array = np.zeros([len(phase_list),1])
     dfa = {}
-    for i in xrange(0,len(phase_list)):
+    for i in range(0,len(phase_list)):
         qa_array[i] = qa[phase_list[i]]
-        for j in xrange(0,len(phase_list)):
+        for j in range(0,len(phase_list)):
             pab_array[i,j] = pab[phase_list[i]][phase_list[j]]
     det = np.linalg.det(pab_array)
     if det == 0:
@@ -156,7 +156,7 @@ def solve_matrix(pab, qa, phase_list):
     else:
         dfa_array = np.dot(np.linalg.inv(pab_array),(qa_array))
         # Convert back to Dicitonaries
-        for k in xrange(0,len(phase_list)):
+        for k in range(0,len(phase_list)):
             dfa[phase_list[k]] = dfa_array[k][0]
     return dfa       
     
